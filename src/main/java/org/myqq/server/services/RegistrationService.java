@@ -71,6 +71,7 @@ public class RegistrationService extends Service {
             }
 
             // 2. 插入新用户
+            // TODO: 密码加密存储
             insertStmt.setString(1, phoneNumber);
             insertStmt.setString(2, username);
             insertStmt.setString(3, password);

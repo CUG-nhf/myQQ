@@ -3,7 +3,6 @@ package org.myqq.server;
 import org.myqq.server.services.RegistrationService;
 import org.myqq.server.services.Service;
 
-import java.awt.*;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -65,7 +64,11 @@ public class Server {
 
     }
 
+    /**
+     * 启动服务器的各种服务
+     */
     public static void start() {
+        // 注册服务
         Service registrationService = new RegistrationService(REGISTRATION_PORT, connection);
         registrationService.startListen();
     }
