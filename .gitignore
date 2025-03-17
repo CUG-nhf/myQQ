@@ -37,6 +37,6 @@ build/
 ### Mac OS ###
 .DS_Store
 
-.idea
+.idea/*
 
-./src/main/java/com/org/myqq/example/
+./src/main/java/com/org/myqq/example/*
