@@ -1,0 +1,4 @@
+ip=127.0.0.1
+login_port=8888
+registration_port=8889
+mysql_port=3306
