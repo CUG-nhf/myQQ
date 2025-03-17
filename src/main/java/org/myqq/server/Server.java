@@ -33,8 +33,7 @@ public class Server {
 
 
     public static void main(String[] args) {
-        Service registrationService = new RegistrationService(REGISTRATION_PORT, connection);
-        registrationService.startListen();
+        new Server().start();
     }
 
     /**
@@ -64,5 +63,10 @@ public class Server {
             throw new RuntimeException("服务器端连接数据库失败！");
         }
 
+    }
+
+    public static void start() {
+        Service registrationService = new RegistrationService(REGISTRATION_PORT, connection);
+        registrationService.startListen();
     }
 }
