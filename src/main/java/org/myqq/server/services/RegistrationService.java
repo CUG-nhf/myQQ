@@ -1,5 +1,7 @@
 package org.myqq.server.services;
 
+import org.myqq.server.Encryptor;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -59,8 +61,11 @@ public class RegistrationService extends Service {
         String checkQuery = "SELECT COUNT(*) FROM users WHERE phone_number = ?";
         String insertQuery = "INSERT INTO users (phone_number, name, password) VALUES (?, ?, ?)";
 
-        try (PreparedStatement checkStmt = connection.prepareStatement(checkQuery);
-             PreparedStatement insertStmt = connection.prepareStatement(insertQuery)) {
+        PreparedStatement checkStmt = null;
+        PreparedStatement insertStmt = null;
+        try {
+            checkStmt = connection.prepareStatement(checkQuery);
+            insertStmt = connection.prepareStatement(insertQuery);
 
             // 1. 检查手机号是否存在
             checkStmt.setString(1, phoneNumber);
@@ -70,8 +75,14 @@ public class RegistrationService extends Service {
                 return false;
             }
 
+            // 2. 密码加密
+            try {
+                password = Encryptor.encrypt(password, Encryptor.getTmpKey());
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+
             // 2. 插入新用户
-            // TODO: 密码加密存储
             insertStmt.setString(1, phoneNumber);
             insertStmt.setString(2, username);
             insertStmt.setString(3, password);
@@ -80,7 +91,25 @@ public class RegistrationService extends Service {
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        } finally {
+            // 关闭资源
+            if (checkStmt != null) {
+                try {
+                    checkStmt.close();
+                } catch (SQLException e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+
+            if (insertStmt != null) {
+                try {
+                    insertStmt.close();
+                } catch (SQLException e) {
+                    System.out.println(e.getMessage());
+                }
+            }
         }
+
         return false;
     }
 }

@@ -12,23 +12,23 @@ public class Server {
     /**
      * 注册端口
      */
-    private static int REGISTRATION_PORT;
+    private final int REGISTRATION_PORT;
 
     /**
      * 登录端口
      */
-    private static int LOGIN_PORT;
+    private final int LOGIN_PORT;
 
     /**
      * 数据库端口
      */
-    private static int MYSQL_PORT;
+    private final int MYSQL_PORT;
 
     /**
      * 数据库连接
      */
-    private static Connection connection;
-    private static final String databaseName = "myqq";
+    private final Connection connection;
+    private final String databaseName = "my_qq";
 
 
     public static void main(String[] args) {
@@ -54,20 +54,20 @@ public class Server {
         // 2. 连接 MySQL 数据库
         try {
             System.out.println("服务器端连接数据库....");
-            String url = "jdbc:mysql://localhost:%d/%s?useSSL=false&serverTimezone=UTC".formatted(MYSQL_PORT, databaseName);
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            String url = "jdbc:mysql://localhost:%d/%s?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true".formatted(MYSQL_PORT, databaseName);
             String username = "root";
-            String password = "";
+            String password = "root";
             connection = DriverManager.getConnection(url, username, password);
         } catch (Exception e) {
-            throw new RuntimeException("服务器端连接数据库失败！");
+            throw new RuntimeException(e.getMessage()); // "服务器端连接数据库失败！"
         }
-
     }
 
     /**
      * 启动服务器的各种服务
      */
-    public static void start() {
+    public void start() {
         // 注册服务
         Service registrationService = new RegistrationService(REGISTRATION_PORT, connection);
         registrationService.startListen();

@@ -171,6 +171,7 @@ public class Register {
            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
            String msg = userName + "|" + password + "|" + phoneNumber;
            out.write(msg);
+           out.newLine();
            out.flush();
 
            // 接收服务器返回的消息
