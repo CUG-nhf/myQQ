@@ -1,5 +1,6 @@
 package org.myqq.server;
 
+import org.myqq.server.services.LoginService;
 import org.myqq.server.services.RegistrationService;
 import org.myqq.server.services.Service;
 
@@ -30,9 +31,16 @@ public class Server {
     private final Connection connection;
     private final String databaseName = "my_qq";
 
+    /**
+     * 服务端的服务
+     */
+    private final RegistrationService registrationService;
+
+    private final LoginService loginService;
+
 
     public static void main(String[] args) {
-        new Server().start();
+        new Server();
     }
 
     /**
@@ -41,6 +49,7 @@ public class Server {
     public Server() {
         Properties properties = new Properties();
         // 1. 读取端口配置
+        // TODO：把Server的输出写到日志中
         try {
             System.out.println("服务器端读取端口配置....");
             properties.load(Server.class.getResourceAsStream("/serverConfig"));
@@ -62,14 +71,12 @@ public class Server {
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage()); // "服务器端连接数据库失败！"
         }
-    }
 
-    /**
-     * 启动服务器的各种服务
-     */
-    public void start() {
-        // 注册服务
-        Service registrationService = new RegistrationService(REGISTRATION_PORT, connection);
-        registrationService.startListen();
+        // 3. 启动服务
+        loginService = new LoginService(LOGIN_PORT, connection);
+        loginService.start();
+
+        registrationService = new RegistrationService(REGISTRATION_PORT, connection);
+        registrationService.start();
     }
 }

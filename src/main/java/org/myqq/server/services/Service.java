@@ -1,8 +1,12 @@
 package org.myqq.server.services;
 
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.sql.Connection;
 
-public abstract class Service{
+public class Service extends Thread{
+
+    protected String name;
 
     /**
      * 要监听的端口号
@@ -37,5 +41,24 @@ public abstract class Service{
     /**
      * 开始监听
      */
-    public abstract void startListen();
+    @Override
+    public void run() {
+        try (ServerSocket serverSocket = new ServerSocket(port)){
+            System.out.printf("%s@服务器 监听端口 %d ...%n", name, port);
+
+            while (isRunning) {
+                // 接收客户端连接
+                Socket clientSocket = serverSocket.accept();
+
+                // 使用线程池处理注册请求（避免阻塞主线程）
+                new Thread(() -> handRequest(clientSocket)).start();
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    protected void handRequest(Socket clientSocket) {
+
+    }
 }

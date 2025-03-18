@@ -3,7 +3,6 @@ package org.myqq.server.services;
 import org.myqq.server.Encryptor;
 
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,26 +13,11 @@ public class RegistrationService extends Service {
 
     public RegistrationService(int port, Connection connection) {
         super(port, connection);
+        this.name = "Registration Service";
     }
 
     @Override
-    public void startListen() {
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.printf("注册服务@服务器 监听端口 %d ...%n", port);
-
-            while (isRunning) {
-                // 接收客户端连接
-                Socket clientSocket = serverSocket.accept();
-
-                // 使用线程池处理注册请求（避免阻塞主线程）
-                new Thread(() -> handleRegister(clientSocket)).start();
-            }
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-    private void handleRegister(Socket clientSocket) {
+    protected void handRequest(Socket clientSocket) {
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             // msg的格式：userName + "|" + password + "|" + phoneNumber;
@@ -52,6 +36,12 @@ public class RegistrationService extends Service {
             in.close();
             out.close();
             clientSocket.close();
+
+            if (result) {
+                System.out.println("用户 " + msgArr[0] + " 注册成功！");
+            } else {
+                System.out.println("用户 " + msgArr[0] + " 注册失败！");
+            }
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }

@@ -34,7 +34,8 @@ public class Register {
 
     /**
      * 构造方法
-     * @param ip 服务器 IP
+     *
+     * @param ip   服务器 IP
      * @param port 服务器端口
      */
     public Register(String ip, int port) {
@@ -112,7 +113,7 @@ public class Register {
      * 3. 必须包含字母、数字、特殊字符中的两种
      * 4. 请勿输入连续、重复6位以上字母或数字，如 123456、111111、abcdef
      */
-    boolean verifyPassword(String password) {
+    private boolean verifyPassword(String password) {
         if (password == null || password.isEmpty()) {
             return false;
         }
@@ -146,12 +147,7 @@ public class Register {
      * 验证手机号
      */
     private boolean verifyPhoneNumber(String phoneNumber) {
-        if (phoneNumber == null || phoneNumber.isEmpty()) {
-            return false;
-        }
-
-        if (phoneNumber.matches("^1[3-9]\\d{9}$")) {
-            // TODO 连接服务器验证手机号是否已经注册
+        if (utils.isPhoneNumber(phoneNumber)) {
             return connectServer();
         } else {
             System.out.println("手机号格式不正确！");
@@ -164,29 +160,29 @@ public class Register {
      */
     private boolean connectServer() {
         boolean result = false;
-       try {
-           Socket socket = new Socket(server_ip, port);
+        try {
+            Socket socket = new Socket(server_ip, port);
 
-           // 昵称、密码、手机号拼接发送给服务器
-           BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-           String msg = userName + "|" + password + "|" + phoneNumber;
-           out.write(msg);
-           out.newLine();
-           out.flush();
+            // 昵称、密码、手机号拼接发送给服务器
+            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            String msg = userName + "|" + password + "|" + phoneNumber;
+            out.write(msg);
+            out.newLine();
+            out.flush();
 
-           // 接收服务器返回的消息
-           DataInputStream in = new DataInputStream(socket.getInputStream());
-           result = in.readBoolean();
-           // TODO: 加入验证码验证
+            // 接收服务器返回的消息
+            DataInputStream in = new DataInputStream(socket.getInputStream());
+            result = in.readBoolean();
+            // TODO: 加入验证码验证
 
-           // 关闭资源
-           out.close();
-           in.close();
-           socket.close();
-       } catch (Exception e) {
-           System.out.println(e.getMessage());
-       }
+            // 关闭资源
+            out.close();
+            in.close();
+            socket.close();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
 
-       return result;
+        return result;
     }
 }

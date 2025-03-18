@@ -82,4 +82,15 @@ public class utils {
         }
         return true;
     }
+
+    /**
+     * 判断手机号是否符合中国大陆手机号规则
+     */
+    public static boolean isPhoneNumber(String phoneNumber) {
+        if (phoneNumber == null || phoneNumber.isEmpty()) {
+            return false;
+        }
+        String regex = "^1[3-9]\\d{9}$";
+        return phoneNumber.matches(regex);
+    }
 }

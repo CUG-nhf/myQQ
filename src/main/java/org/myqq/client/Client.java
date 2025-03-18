@@ -1,5 +1,9 @@
 package org.myqq.client;
 
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.OutputStreamWriter;
+import java.net.Socket;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -66,10 +70,62 @@ public class Client {
     }
 
     private void login() {
+        while (true) {
+            // 1. 首先输入手机号
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("请输入您的手机号（-1表示退出输入）：");
+            String phoneNumber = scanner.next();
+            if (phoneNumber.equals("-1")) {
+                return;
+            }
+
+            if (utils.isPhoneNumber(phoneNumber)) {
+               // 2. 输入密码
+                System.out.println("请输入您的密码（-1表示退出输入）：");
+                String password = utils.readPassword();
+                if (password.equals("-1")) {
+                    return;
+                }
+
+                // 3. 验证密码
+                if (verifyPassword(password, phoneNumber)) {
+                    System.out.println("验证通过");
+                    return;
+                    // TODO: 用户主界面
+//                    new ClientMainWindow(SERVER_IP, SERVER_LOGIN_PORT).login(phoneNumber, password);
+                }
+
+            } else {
+                System.out.println("手机号格式有误，请重新输入！");
+            }
+        }
     }
 
-    private void connectServer() {
-        System.out.println("连接服务器进行验证");
+    private boolean verifyPassword(String password, String phoneNumber) {
+        boolean result = false;
+        try {
+            Socket socket = new Socket(SERVER_IP, SERVER_LOGIN_PORT);
+
+            // 密码、手机号拼接发送给服务器
+            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            String msg = password + "|" + phoneNumber;
+            out.write(msg);
+            out.newLine();
+            out.flush();
+
+            // 接收服务器返回的消息
+            DataInputStream in = new DataInputStream(socket.getInputStream());
+            result = in.readBoolean();
+
+            // 关闭资源
+            out.close();
+            in.close();
+            socket.close();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return result;
     }
 
 }
