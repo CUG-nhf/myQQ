@@ -9,11 +9,11 @@ import static org.junit.Assert.assertTrue;
 
 public class RegisterTest {
 
-    private Register register;
+    private ClientRegistrationWindow register;
 
     @Before
     public void setUp() {
-        register = new Register("", 0);
+        register = new ClientRegistrationWindow("", 0);
     }
 
     @Test

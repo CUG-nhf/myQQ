@@ -6,7 +6,7 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class Register {
+public class ClientRegistrationWindow {
     /**
      * 服务器 IP
      */
@@ -38,7 +38,7 @@ public class Register {
      * @param ip   服务器 IP
      * @param port 服务器端口
      */
-    public Register(String ip, int port) {
+    public ClientRegistrationWindow(String ip, int port) {
         this.server_ip = ip;
         this.port = port;
     }
@@ -113,7 +113,7 @@ public class Register {
      * 3. 必须包含字母、数字、特殊字符中的两种
      * 4. 请勿输入连续、重复6位以上字母或数字，如 123456、111111、abcdef
      */
-    private boolean verifyPassword(String password) {
+    boolean verifyPassword(String password) {
         if (password == null || password.isEmpty()) {
             return false;
         }

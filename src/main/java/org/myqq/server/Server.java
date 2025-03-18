@@ -10,32 +10,20 @@ import java.sql.DriverManager;
 import java.util.Properties;
 
 public class Server {
-    /**
-     * 注册端口
-     */
+    // 服务器注册、登陆、通信端口
     private final int REGISTRATION_PORT;
-
-    /**
-     * 登录端口
-     */
     private final int LOGIN_PORT;
+    private final int CHAT_PORT;
 
-    /**
-     * 数据库端口
-     */
+    // 服务连接MySQL数据库端口
     private final int MYSQL_PORT;
 
-    /**
-     * 数据库连接
-     */
+    // 数据库连接、数据库名
     private final Connection connection;
     private final String databaseName = "my_qq";
 
-    /**
-     * 服务端的服务
-     */
+    // 服务器提供的服务
     private final RegistrationService registrationService;
-
     private final LoginService loginService;
 
 
@@ -55,6 +43,7 @@ public class Server {
             properties.load(Server.class.getResourceAsStream("/serverConfig"));
             REGISTRATION_PORT = Integer.parseInt(properties.getProperty("registration_port"));
             LOGIN_PORT = Integer.parseInt(properties.getProperty("login_port"));
+            CHAT_PORT = Integer.parseInt(properties.getProperty("chat_port"));
             MYSQL_PORT = Integer.parseInt(properties.getProperty("mysql_port"));
         } catch (IOException e) {
             throw new RuntimeException("服务器端读取配置文件失败！");

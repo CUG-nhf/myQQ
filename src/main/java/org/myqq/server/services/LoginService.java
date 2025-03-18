@@ -1,5 +1,6 @@
 package org.myqq.server.services;
 
+import org.myqq.common.User;
 import org.myqq.server.Encryptor;
 
 import java.io.*;
@@ -8,18 +9,18 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.HashMap;
 
 public class LoginService extends Service{
 
-    private final ArrayList<LoginUser> login_Users = new ArrayList<>();
+    private final HashMap<String, User> login_Users = new HashMap<>();
 
     public LoginService(int port, Connection connection) {
         super(port, connection);
         this.name = "Login Service";
     }
 
-    public ArrayList<LoginUser> getLogin_Users() {
+    public HashMap<String, User> getLogin_Users() {
         return login_Users;
     }
 
@@ -32,19 +33,21 @@ public class LoginService extends Service{
             String[] msgArr = msg.split("\\|");
 
             // 校验密码
-            boolean result = verifyPW(msgArr[1], msgArr[0]);
+            User result = verifyPW(msgArr[1], msgArr[0]);
 
-            if (result) {
-                // 补全 IP
-                login_Users.get(login_Users.size() - 1).user_IP = clientSocket.getInetAddress().getHostAddress();
-                System.out.println("用户 " + login_Users.get(login_Users.size() - 1).user_name + " 登录成功！");
+            if (result != null) {
+                // 补全user信息，添加到在线用户列表
+                result.setClient_IP(clientSocket.getInetAddress().getHostAddress());
+                result.setClient_port(clientSocket.getPort());
+                login_Users.put(result.getPhone(), result);
+                System.out.println("用户 " + result.getName() + " 登录成功！");
             } else {
-                System.out.println("用户 " + msgArr[1] + " 登录失败！");
+                System.out.println("账号 " + msgArr[1] + " 登录失败！");
             }
 
             // 返回注册结果给客户端
-            DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
-            out.writeBoolean(result);
+            ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+            out.writeObject(result);
             out.flush();
 
             // 关闭资源
@@ -56,7 +59,13 @@ public class LoginService extends Service{
         }
     }
 
-    private boolean verifyPW(String phoneNumber, String password) {
+    /**
+     * 验证密码
+     * @param phoneNumber 手机号
+     * @param password 密码
+     * @return 如果返回User对象，则登录成功，否则登录失败
+     */
+    private User verifyPW(String phoneNumber, String password) {
         String selectQuery = "SELECT * FROM users WHERE phone_number = ?";
         PreparedStatement selectStmt = null;
         try {
@@ -65,7 +74,7 @@ public class LoginService extends Service{
             ResultSet rs = selectStmt.executeQuery();
             // 不存在phoneNumber，则返回false
             if (!rs.next()) {
-                return false;
+                return null;
             }
             // 存在phoneNumber，则验证密码
             String encrypted_pw = rs.getString("password");
@@ -76,30 +85,12 @@ public class LoginService extends Service{
                 System.out.println(e.getMessage());
             }
             if (decrypted_pw.equals(password)) {
-                // 登录成功，则将用户信息添加到login_Users中
-                login_Users.add(new LoginUser(phoneNumber, rs.getString("name")));
-                return true;
+                // 登录成功，则返回User对象
+                return new User(rs.getString("name"), phoneNumber);
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-        return false;
-    }
-
-    public static class LoginUser {
-        public String user_phone;
-        public String user_name;
-        public String user_IP;
-        public LoginUser(String phone, String name, String ip) {
-            user_IP = ip;
-            user_phone = phone;
-            user_name = name;
-        }
-
-        public LoginUser(String phone, String name) {
-            user_IP = "";
-            user_phone = phone;
-            user_name = name;
-        }
+        return null;
     }
 }

@@ -1,32 +1,37 @@
 package org.myqq.client;
 
+import org.myqq.common.User;
+
 import java.io.BufferedWriter;
-import java.io.DataInputStream;
+import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.Properties;
 import java.util.Scanner;
 
-public class Client {
+public class ClientLoginWindow {
+    // 服务器的 IP 和端口号
     private static String SERVER_IP;
     private static int SERVER_LOGIN_PORT;
     private static int SERVER_REGISTRATION_PORT;
+    private static int SERVER_CHAT_PORT;
 
     public static void main(String[] args) {
-        Client client = new Client();
+        ClientLoginWindow client = new ClientLoginWindow();
         client.start();
     }
 
     /**
      * 读取配置文件，获取服务器的IP和端口号
      */
-    public Client() {
+    public ClientLoginWindow() {
         Properties properties = new Properties();
         try {
-            properties.load(Client.class.getClassLoader().getResourceAsStream("serverConfig"));
+            properties.load(ClientLoginWindow.class.getClassLoader().getResourceAsStream("serverConfig"));
             SERVER_IP = properties.getProperty("ip");
             SERVER_LOGIN_PORT = Integer.parseInt(properties.getProperty("login_port"));
             SERVER_REGISTRATION_PORT = Integer.parseInt(properties.getProperty("registration_port"));
+            SERVER_CHAT_PORT = Integer.parseInt(properties.getProperty("chat_port"));
         } catch (Exception e) {
             throw new RuntimeException("客服端读取配置文件失败！");
         }
@@ -42,8 +47,11 @@ public class Client {
             System.out.println("请输入您的选择：");
             switch (scanner.nextInt()) {
                 case 1:
-                    login();
-                    break;
+                    if (login()) {
+                        return;
+                    } else {
+                        break;
+                    }
                 case 2:
                    register();
                     break;
@@ -66,17 +74,21 @@ public class Client {
      * 输入昵称、密码和手机号，客户端进行初步的格式验证，然后发给服务器进一步验证并注册
      */
     private void register() {
-        new Register(SERVER_IP, SERVER_REGISTRATION_PORT).registration();
+        new ClientRegistrationWindow(SERVER_IP, SERVER_REGISTRATION_PORT).registration();
     }
 
-    private void login() {
+    /**
+     * 用户登陆：打开登陆界面
+     * 输入手机号和密码，客户端进行初步的格式验证，然后发给服务器进一步验证并登陆
+     */
+    private boolean login() {
         while (true) {
             // 1. 首先输入手机号
             Scanner scanner = new Scanner(System.in);
             System.out.println("请输入您的手机号（-1表示退出输入）：");
             String phoneNumber = scanner.next();
             if (phoneNumber.equals("-1")) {
-                return;
+                return false;
             }
 
             if (utils.isPhoneNumber(phoneNumber)) {
@@ -84,15 +96,15 @@ public class Client {
                 System.out.println("请输入您的密码（-1表示退出输入）：");
                 String password = utils.readPassword();
                 if (password.equals("-1")) {
-                    return;
+                    return false;
                 }
 
                 // 3. 验证密码
-                if (verifyPassword(password, phoneNumber)) {
+                User result = null;
+                if ((result = verifyPassword(password, phoneNumber)) != null) {
                     System.out.println("验证通过");
-                    return;
-                    // TODO: 用户主界面
-//                    new ClientMainWindow(SERVER_IP, SERVER_LOGIN_PORT).login(phoneNumber, password);
+                    new ClientMainWindow(SERVER_IP, SERVER_CHAT_PORT, result).start();
+                    return true;
                 }
 
             } else {
@@ -101,8 +113,14 @@ public class Client {
         }
     }
 
-    private boolean verifyPassword(String password, String phoneNumber) {
-        boolean result = false;
+    /**
+     *  客户端连接服务器登陆端口，发送密码和手机号，验证密码是否正确
+     * @param password 密码
+     * @param phoneNumber 手机号
+     * @return 验证通过返回true，否则返回false
+     */
+    private User verifyPassword(String password, String phoneNumber) {
+        User result = null;
         try {
             Socket socket = new Socket(SERVER_IP, SERVER_LOGIN_PORT);
 
@@ -113,9 +131,9 @@ public class Client {
             out.newLine();
             out.flush();
 
-            // 接收服务器返回的消息
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-            result = in.readBoolean();
+            // 接收服务器返回的消息, 如果返回User对象，则验证通过，如果返回NULL则验证失败
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+            result = (User) in.readObject();
 
             // 关闭资源
             out.close();
@@ -127,5 +145,4 @@ public class Client {
 
         return result;
     }
-
 }
